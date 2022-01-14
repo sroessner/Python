@@ -79,13 +79,6 @@ def listColors():
 
 	return
 	
-def multiPlot (wd, ht, DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
-	j = wd*ht
-	for i in range(j):
-		subplot(wd, ht, i+1)
-		vertBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs)
-	return
-
 	
 def vertBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
 	chartHeight = kwargs.get('chartHeight',7.5)
@@ -105,10 +98,8 @@ def vertBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
 
 	spCol = int(math.ceil(math.sqrt(subPlot)))
 	spRow = int(math.ceil(subPlot/spCol))
-	grid = GridSpec(spRow, spCol, wspace = .25, hspace = .25)
 
-
-	MaxY=max(DataFileName[ColumnWithValues])
+	MaxY=max(DataFileName[ColumnWithValues])*1.2
 	MaxX=DataFileName[ColumnWithNames].count()
 	
 	figure(figsize=(chartWidth,chartHeight))
@@ -119,6 +110,7 @@ def vertBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
 			df = DataFileName
 		else:
 			df = DataFileName[DataFileName[filterer]==ulist[i]]
+			chartTitle = ulist[i]
 
 		sp = int(str(spRow) + str(spCol) + str(i+1))
 		ax = subplot(sp)
@@ -165,49 +157,71 @@ def horizBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
 	chartWidth = kwargs.get('chartWidth',10)
 	colorGroups = kwargs.get('colorGroups','sequential')
 	chartTitle = kwargs.get('chartTitle','')
+	subPlot = kwargs.get('subPlot',1)
+	
+
+	if subPlot == 1:
+		subPlot = 1
+	else:
+		filterer = subPlot
+		subPlot = DataFileName[filterer].nunique()
+		ulist = DataFileName[filterer].unique()
+
+	spCol = int(math.ceil(math.sqrt(subPlot)))
+	spRow = int(math.ceil(subPlot/spCol))
 
 	MaxY=DataFileName[ColumnWithNames].count()
-	MaxX=DataFileName[ColumnWithValues].max()
+	MaxX=DataFileName[ColumnWithValues].max()*1.2
 
-	
 	figure(figsize=(chartWidth,chartHeight))
-	ax = subplot(111)  
-	ax.spines["top"].set_visible(False)  
-	ax.spines["bottom"].set_visible(True)  
-	ax.spines["right"].set_visible(False)  
-	ax.spines["left"].set_visible(False)
-	ax.get_xaxis().tick_bottom()  
-	ax.get_yaxis().tick_left()
-	for x in range(int(MaxX/4),int(MaxX+1), int(MaxX/4)):  
-		plot([x] * len(range(0, MaxY+1)), range(0, MaxY+1), "--", lw=0.5, color="black", alpha=0.3)
-	ax.tick_params(axis="both", which="both", bottom="off", top="off", labelbottom="on", left="off", right="off", labelleft="off") 
-	
-	if colorGroups == 'sequential':
-		for row, Name in enumerate(DataFileName[ColumnWithNames]):
-			NameValue = operator.itemgetter(row)(DataFileName[ColumnWithValues].values)
-			barh(1+row,NameValue,lw=2.5,color=tableau20[row%20],edgecolor='none')
-			text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[row%20],va='center',ha='left',size='large')
 
-	elif (DataFileName[colorGroups] % 1 == 0).all():
-		for row, Name in enumerate(DataFileName[ColumnWithNames]):
-			NameValue = operator.itemgetter(row)(DataFileName[ColumnWithValues].values)
-			ColorValue = operator.itemgetter(row)(DataFileName[colorGroups].values)-1
-			barh(1+row,NameValue,lw=2.5,color=tableau20[int(ColorValue)],edgecolor='none')
-			text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[int(ColorValue)],va='center',ha='left',size='large')
+	for i in range(subPlot):
 
-	else:
-		distinctColors = DataFileName[colorGroups].unique()
-		for row, Name in enumerate(DataFileName[ColumnWithNames]):
-			NameValue = operator.itemgetter(row)(DataFileName[ColumnWithValues].values)
-			tempColor = np.where(distinctColors == operator.itemgetter(row)(DataFileName[colorGroups].values))[0][0]
-			try:
-				pickedColor = operator.itemgetter(row)(DataFileName[colorGroups].values)-1
-				barh(1+row,NameValue,lw=2.5,color=tableau20[pickedColor],edgecolor='none')
-				text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[pickedColor],va='center',ha='left',size='large')
-			except:
-				barh(1+row,NameValue,lw=2.5,color=tableau20[tempColor%20],edgecolor='none')
-				text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[tempColor%20],va='center',ha='left',size='large')
-	title(chartTitle, fontsize='x-large')
+		if subPlot==1:
+			df = DataFileName
+			subTitle = ''
+		else:
+			df = DataFileName[DataFileName[filterer]==ulist[i]]
+			chartTitle = ulist[i]
+
+		sp = int(str(spRow) + str(spCol) + str(i+1))
+		ax = subplot(sp)
+		ax.spines["top"].set_visible(False)  
+		ax.spines["bottom"].set_visible(True)  
+		ax.spines["right"].set_visible(False)  
+		ax.spines["left"].set_visible(False)
+		ax.get_xaxis().tick_bottom()  
+		ax.get_yaxis().tick_left()
+		for x in range(int(MaxX/4),int(MaxX+1), int(MaxX/4)):  
+			plot([x] * len(range(0, MaxY+1)), range(0, MaxY+1), "--", lw=0.5, color="black", alpha=0.3)
+		ax.tick_params(axis="both", which="both", bottom="off", top="off", labelbottom="on", left="off", right="off", labelleft="off") 
+		
+		if colorGroups == 'sequential':
+			for row, Name in enumerate(df[ColumnWithNames]):
+				NameValue = operator.itemgetter(row)(df[ColumnWithValues].values)
+				barh(1+row,NameValue,lw=2.5,color=tableau20[row%20],edgecolor='none')
+				text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[row%20],va='center',ha='left',size='large')
+
+		elif (df[colorGroups] % 1 == 0).all():
+			for row, Name in enumerate(df[ColumnWithNames]):
+				NameValue = operator.itemgetter(row)(df[ColumnWithValues].values)
+				ColorValue = operator.itemgetter(row)(df[colorGroups].values)-1
+				barh(1+row,NameValue,lw=2.5,color=tableau20[int(ColorValue)],edgecolor='none')
+				text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[int(ColorValue)],va='center',ha='left',size='large')
+
+		else:
+			distinctColors = df[colorGroups].unique()
+			for row, Name in enumerate(df[ColumnWithNames]):
+				NameValue = operator.itemgetter(row)(df[ColumnWithValues].values)
+				tempColor = np.where(distinctColors == operator.itemgetter(row)(df[colorGroups].values))[0][0]
+				try:
+					pickedColor = operator.itemgetter(row)(df[colorGroups].values)-1
+					barh(1+row,NameValue,lw=2.5,color=tableau20[pickedColor],edgecolor='none')
+					text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[pickedColor],va='center',ha='left',size='large')
+				except:
+					barh(1+row,NameValue,lw=2.5,color=tableau20[tempColor%20],edgecolor='none')
+					text(NameValue+MaxX*offset,1+row,Name+': '+str(NameValue),color=tableau20[tempColor%20],va='center',ha='left',size='large')
+		title(chartTitle, fontsize='x-large')
 	return
 
 def line(DataFileName,ColumnWithXAxis,*args,**kwargs):
