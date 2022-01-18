@@ -256,6 +256,71 @@ def line(DataFileName,ColumnWithXAxis,*args,**kwargs):
 		text(MaxX+.5,DataFileName.drop(ColumnWithXAxis.replace("\n"," "),axis=1)[Name].values[-1],Name,color=tableau20[row%20])
 	title(chartTitle, fontsize='x-large')
 	return
+
+def area(DataFileName,ColumnWithValues,ColumnWithXAxis,areaGroups,*args,**kwargs):
+	chartHeight = kwargs.get('chartHeight',7.5)
+	chartWidth =kwargs.get('chartWidth',10)
+	rotate = kwargs.get('rotateLabels',0)
+	chartTitle = kwargs.get('chartTitle','')
+	subPlot = kwargs.get('subPlot',1)
+	colorGroups = kwargs.get('colorGroups','sequential')
+	
+	if subPlot == 1:
+		subPlot = 1
+	else:
+		filterer = subPlot
+		subPlot = DataFileName[filterer].nunique()
+		ulist = DataFileName[filterer].unique()
+
+
+	spCol = int(math.ceil(math.sqrt(subPlot)))
+	spRow = int(math.ceil(subPlot/spCol))
+
+	MaxY=max(DataFileName[ColumnWithValues])*1.2
+	MaxX=DataFileName[ColumnWithXAxis].count()
+	
+	figure(figsize=(chartWidth,chartHeight))
+
+	for i in range(subPlot):
+
+		if subPlot==1:
+			df = DataFileName
+		else:
+			df = DataFileName[DataFileName[filterer]==ulist[i]]
+			chartTitle = ulist[i]
+
+		areaLabels = DataFileName[areaGroups].unique()
+		for i in range(DataFileName[areaGroups].nunique()):
+		    tempValue = DataFileName[DataFileName[areaGroups]==areaLabels[i]]
+		    emptyArray = np.zeros(DataFileName[ColumnWithXAxis].nunique())
+		    for j in range(len(tempValue)):
+			    row = int(tempValue.iloc[[j]][ColumnWithXAxis].values[0])
+			    emptyArray[row] =  tempValue.iloc[[j]][ColumnWithValues].values[0]
+		    if i==0:
+		        y = emptyArray
+		    else:
+		        y = np.vstack([y, emptyArray])
+
+		if colorGroups == 'sequential':
+			for i in range(DataFileName[areaGroups].nunique()):
+				if i ==0:
+					areaColors = tableau20[0]
+				else:
+					areaColors = np.vstack([areaColors, tableau20[i]])
+		else:
+			for i in range(DataFileName[areaGroups].nunique()):
+				tempValue = DataFileName[DataFileName[areaGroups]==areaLabels[i]]
+				selectedColors = int(tempValue.iloc[[0]][colorGroups].values[0])
+				if i ==0:
+					areaColors = tableau20[selectedColors-1]
+				else:
+					areaColors = np.vstack([areaColors, tableau20[selectedColors-1]])
+
+		
+		stackplot(DataFileName[ColumnWithXAxis].unique(), y, labels=areaLabels, colors = areaColors)
+		legend(loc='upper right')
+	return
+
 	
 def gantt(DataFileName,ColumnWithSeries,ColumnWithStart,ColumnWithMagnitude,*args,**kwargs):
 	chartHeight = kwargs.get('chartHeight',7.5)
