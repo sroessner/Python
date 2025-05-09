@@ -100,6 +100,7 @@ def vertBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
 	spRow = int(math.ceil(subPlot/spCol))
 
 	MaxY=max(DataFileName[ColumnWithValues])*1.2
+	MinY=min(DataFileName[ColumnWithValues])*1.2 if min(DataFileName[ColumnWithValues])<0 else 0
 	MaxX=DataFileName[ColumnWithNames].count()
 	
 	figure(figsize=(chartWidth,chartHeight))
@@ -120,22 +121,23 @@ def vertBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
 		ax.spines["left"].set_visible(False)
 		ax.get_xaxis().tick_bottom()  
 		ax.get_yaxis().tick_left()
-		for y in range(int(MaxY/4),int(MaxY+1), int(MaxY/4)):  
+		for y in range(int(MinY),int(MaxY), int((MaxY-MinY)/4)):  
 			plot(range(-1, MaxX+1), [y] * len(range(-1, MaxX+1)), "--", lw=0.5, color="black", alpha=0.3)
+			ax.axhline(y=0, color='black', linestyle='--', lw=0.5)
 		ax.tick_params(axis="both", which="both", bottom="off", top="off", labelbottom="off", left="off", right="off", labelleft="on") 
 		
 		if colorGroups == 'sequential':
 			for row, Name in enumerate(df[ColumnWithNames]):
 				NameValue = operator.itemgetter(row)(df[ColumnWithValues].values)
 				bar(row,NameValue,lw=2.5,color=tableau20[row%20],edgecolor='none')
-				text(row,NameValue+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[row%20],ha=hAlign,va=vAlign,size='large',rotation=rotate)
+				text(row,NameValue+(-1.5*len(Name) if NameValue<0 else 1)+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[row%20],ha=hAlign,va=vAlign,size='large',rotation=rotate)
 
 		elif (df[colorGroups] % 1 == 0).all():
 			for row, Name in enumerate(df[ColumnWithNames]):
 				NameValue = operator.itemgetter(row)(df[ColumnWithValues].values)
 				ColorValue = operator.itemgetter(row)(df[colorGroups].values)-1
 				bar(row,NameValue,lw=2.5,color=tableau20[int(ColorValue)],edgecolor='none')
-				text(row,NameValue+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[int(ColorValue)],ha=hAlign,va=vAlign,size='large',rotation=rotate)
+				text(row,NameValue+(-1.5*len(Name) if NameValue<0 else 1)+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[int(ColorValue)],ha=hAlign,va=vAlign,size='large',rotation=rotate)
 
 		else:
 			distinctColors = df[colorGroups].unique()
@@ -145,10 +147,10 @@ def vertBar(DataFileName,ColumnWithValues,ColumnWithNames,*args,**kwargs):
 				try:
 					pickedColor = operator.itemgetter(row)(df[colorGroups].values)-1
 					bar(row,NameValue,lw=2.5,color=tableau20[pickedColor],edgecolor='none')
-					text(row,NameValue+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[pickedColor],ha=hAlign,va=vAlign,size='large',rotation=rotate)
+					text(row,NameValue+(-1.5*len(Name) if NameValue<0 else 1)+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[pickedColor],ha=hAlign,va=vAlign,size='large',rotation=rotate)
 				except:
 					bar(row,NameValue,lw=2.5,color=tableau20[tempColor%20],edgecolor='none')
-					text(row,NameValue+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[tempColor%20],ha=hAlign,va=vAlign,size='large',rotation=rotate)
+					text(row,NameValue+(-1.5*len(Name) if NameValue<0 else 1)+offset*MaxY,Name+'\n'+str(NameValue),color=tableau20[tempColor%20],ha=hAlign,va=vAlign,size='large',rotation=rotate)
 		title(chartTitle, fontsize='x-large')
 	return
 
